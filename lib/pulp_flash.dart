@@ -161,8 +161,8 @@ class _FlashWidgetState extends State<_FlashWidget> {
                 duration: widget.message.displayDuration,
                 builder: (context, value, child) {
                   final Widget headerWidget = ListTile(
-                    isThreeLine: exapnd &&
-                        widget.message.description?.isNotEmpty == true,
+                    // isThreeLine: exapnd &&
+                    //     widget.message.description?.isNotEmpty == true,
                     subtitle:
                         exapnd && widget.message.description?.isNotEmpty == true
                             ? Text(widget.message.description!)
