@@ -2,6 +2,7 @@ name: pulp_flash
 description: Display multiple simple messages at a same time.
 version: 0.0.1
 homepage:
+  https://github.com/HassanEm/pulp_flash
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
