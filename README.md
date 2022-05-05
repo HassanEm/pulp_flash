@@ -7,9 +7,11 @@ Display multiple flashes at the same time and avoid writing thousands of extra l
 - Pinned Message
 - Customizable statuses
 - Customizable display duration for each message
+
+
 ![screenshot](assets/screenshot.png)
 
-> More features coming. it's will be a pleasure to report any bug or features that you think help the package. [Repository (GitHub)](https://github.com/HassanEm/pulp_flash)
+> More features coming. it's will be a pleasure to report any bug or features that you think help the package💖. [Repository (GitHub)](https://github.com/HassanEm/pulp_flash)
 
 
 ## Usage
