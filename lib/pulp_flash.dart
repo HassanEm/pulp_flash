@@ -7,8 +7,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class PulpFlash extends ChangeNotifier {
+  PulpFlash({
+    this.maxMessages = 5,
+    this.maxFlashWidth = 300,
+  });
   final List<Message> _messages = [];
   OverlayEntry? _overlayEntry;
+
+  /// maxMessages is the maximum number of messages that can be displayed at the same time.
+  final int maxMessages;
+
+  /// maxFlashWidth is the maximum width of the flash message.
+  final double maxFlashWidth;
 
   void _insertOverlay(BuildContext context) {
     if (_overlayEntry != null) {
@@ -24,6 +34,7 @@ class PulpFlash extends ChangeNotifier {
                     children: model._messages
                         .map((m) => _FlashWidget(
                               m,
+                              maxFlashWidth,
                               key: ValueKey('Key:${m.id}'),
                             ))
                         .toList()),
@@ -48,7 +59,7 @@ class PulpFlash extends ChangeNotifier {
       _insertOverlay(context);
     }
 
-    if (_messages.length >= 5) {
+    if (_messages.length >= maxMessages) {
       _removeMessage(_messages.firstWhere((m) => !m.pinned,
           orElse: () => _messages.first));
     }
@@ -124,8 +135,9 @@ class Message {
 }
 
 class _FlashWidget extends StatefulWidget {
-  const _FlashWidget(this.message, {Key? key}) : super(key: key);
+  const _FlashWidget(this.message, this.maxWidth, {Key? key}) : super(key: key);
   final Message message;
+  final double maxWidth;
 
   @override
   State<_FlashWidget> createState() => _FlashWidgetState();
@@ -147,9 +159,8 @@ class _FlashWidgetState extends State<_FlashWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const double maxWidth = 300;
     return ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: maxWidth),
+        constraints: BoxConstraints(maxWidth: widget.maxWidth),
         child: TweenAnimationBuilder<double>(
           tween: fadinFadeout,
           duration: const Duration(milliseconds: 200),
@@ -158,7 +169,7 @@ class _FlashWidgetState extends State<_FlashWidget> {
           child: Card(
             clipBehavior: Clip.antiAlias,
             child: TweenAnimationBuilder<double>(
-                tween: Tween<double>(begin: maxWidth, end: 0),
+                tween: Tween<double>(begin: widget.maxWidth, end: 0),
                 duration: widget.message.displayDuration,
                 builder: (context, value, child) {
                   final Widget headerWidget = ListTile(
@@ -206,15 +217,22 @@ class _FlashWidgetState extends State<_FlashWidget> {
                                         widget.message.onActionPressed != null)
                                       Row(
                                         children: [
-                                          const SizedBox(width: 52),
+                                          const SizedBox(width: 50),
                                           Padding(
                                             padding: const EdgeInsets.only(
                                                 bottom: 16),
                                             child: InkWell(
                                               borderRadius:
                                                   BorderRadius.circular(3),
-                                              onTap: widget
-                                                  .message.onActionPressed,
+                                              onTap: () {
+                                                if (widget.message
+                                                        .onActionPressed !=
+                                                    null) {
+                                                  widget.message
+                                                      .onActionPressed!();
+                                                }
+                                                dissmiss(context);
+                                              },
                                               child: Padding(
                                                 padding:
                                                     const EdgeInsets.all(2.0),
