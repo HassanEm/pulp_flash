@@ -103,6 +103,7 @@ extension _FlashStatusExt on FlashStatus {
 class Message {
   Message(
       {this.title,
+      this.expandable = true,
       this.description,
       required this.status,
       this.actionLabel,
@@ -119,7 +120,7 @@ class Message {
   final Duration displayDuration;
   final String? actionLabel;
   final void Function()? onActionPressed;
-  final bool pinned;
+  final bool pinned, expandable;
 }
 
 class _FlashWidget extends StatefulWidget {
@@ -161,12 +162,10 @@ class _FlashWidgetState extends State<_FlashWidget> {
                 duration: widget.message.displayDuration,
                 builder: (context, value, child) {
                   final Widget headerWidget = ListTile(
-                    // isThreeLine: exapnd &&
-                    //     widget.message.description?.isNotEmpty == true,
-                    subtitle:
-                        exapnd && widget.message.description?.isNotEmpty == true
-                            ? Text(widget.message.description!)
-                            : null,
+                    subtitle: (exapnd || !widget.message.expandable) &&
+                            widget.message.description?.isNotEmpty == true
+                        ? Text(widget.message.description!)
+                        : null,
                     key: ValueKey('key_first${widget.message.id}'),
                     horizontalTitleGap: 0,
                     leading: Icon(widget.message.status.icon,
@@ -178,8 +177,12 @@ class _FlashWidgetState extends State<_FlashWidget> {
                         icon: const Icon(Icons.close_rounded)),
                   );
                   return MouseRegion(
-                    onEnter: (_) => setState(() => exapnd = true),
-                    onExit: (_) => setState(() => exapnd = false),
+                    onEnter: !widget.message.expandable
+                        ? null
+                        : (_) => setState(() => exapnd = true),
+                    onExit: !widget.message.expandable
+                        ? null
+                        : (_) => setState(() => exapnd = false),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -191,7 +194,7 @@ class _FlashWidgetState extends State<_FlashWidget> {
                           ),
                         AnimatedSize(
                           duration: const Duration(milliseconds: 200),
-                          child: !exapnd
+                          child: (!exapnd && widget.message.expandable)
                               ? headerWidget
                               : Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,34 +204,44 @@ class _FlashWidgetState extends State<_FlashWidget> {
                                     headerWidget,
                                     if (widget.message.actionLabel != null ||
                                         widget.message.onActionPressed != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 52, bottom: 16),
-                                        child: InkWell(
-                                          borderRadius:
-                                              BorderRadius.circular(3),
-                                          onTap: widget.message.onActionPressed,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(2.0),
-                                            child: Text(
-                                              widget.message.actionLabel ??
-                                                  'Action',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .overline
-                                                  ?.apply(
-                                                      fontSizeDelta: 2,
-                                                      fontWeightDelta: 4,
-                                                      color: widget.message
-                                                                  .onActionPressed ==
-                                                              null
-                                                          ? Theme.of(context)
-                                                              .disabledColor
-                                                          : widget.message
-                                                              .status.color),
+                                      Row(
+                                        children: [
+                                          const SizedBox(width: 52),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 16),
+                                            child: InkWell(
+                                              borderRadius:
+                                                  BorderRadius.circular(3),
+                                              onTap: widget
+                                                  .message.onActionPressed,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(2.0),
+                                                child: Text(
+                                                  widget.message.actionLabel ??
+                                                      'Action',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .overline
+                                                      ?.apply(
+                                                          fontSizeDelta: 2,
+                                                          fontWeightDelta: 4,
+                                                          color: widget.message
+                                                                      .onActionPressed ==
+                                                                  null
+                                                              ? Theme.of(
+                                                                      context)
+                                                                  .disabledColor
+                                                              : widget
+                                                                  .message
+                                                                  .status
+                                                                  .color),
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        ],
                                       ),
                                   ],
                                 ),
