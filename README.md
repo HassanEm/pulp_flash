@@ -52,7 +52,7 @@ void main() => runApp(ChangeNotifierProvider<PulpFlash>(
   Widget build(BuildContext context) {
     return Scaffold(floatingActionButton: FloatingActionButton(
       onPressed: (){
-          Provider.of<PopupMessageManager>(context, listen: false)
+          Provider.of<PulpFlash>(context, listen: false)
                 .showMessage(context,
                     inputMessage:Message(
                         status: MessageStatus.successful,
