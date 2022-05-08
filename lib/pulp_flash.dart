@@ -1,7 +1,7 @@
 library pulp_flash;
 
 import 'dart:async';
-import 'dart:math';
+import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +12,8 @@ class PulpFlash extends ChangeNotifier {
     this.maxFlashWidth = 300,
   });
   final List<Message> _messages = [];
+  UnmodifiableListView<Message> get displayingMessages =>
+      UnmodifiableListView<Message>(_messages);
   OverlayEntry? _overlayEntry;
 
   /// maxMessages is the maximum number of messages that can be displayed at the same time.
@@ -35,7 +37,7 @@ class PulpFlash extends ChangeNotifier {
                         .map((m) => _FlashWidget(
                               m,
                               maxFlashWidth,
-                              key: ValueKey('Key:${m.id}'),
+                              key: ValueKey('Key:${m.key}'),
                             ))
                         .toList()),
               ),
@@ -57,6 +59,9 @@ class PulpFlash extends ChangeNotifier {
       Duration duration = const Duration(seconds: 5)}) async {
     if (_overlayEntry == null) {
       _insertOverlay(context);
+    }
+    if (displayingMessages.where((m) => m.key == inputMessage.key).isNotEmpty) {
+      return;
     }
 
     if (_messages.length >= maxMessages) {
@@ -120,10 +125,12 @@ class Message {
       this.actionLabel,
       this.onActionPressed,
       this.pinned = false,
-      this.displayDuration = const Duration(seconds: 10)});
+      this.key,
+      this.displayDuration = const Duration(seconds: 10)}) {
+    key ??= UniqueKey();
+  }
 
-  final String id =
-      '${10000000 + Random().nextInt(89999999)}.${Random().nextDouble()}.${10000000 + Random().nextInt(89999999)}';
+  late Key? key;
 
   final FlashStatus status;
   final String? title;
@@ -177,7 +184,7 @@ class _FlashWidgetState extends State<_FlashWidget> {
                             widget.message.description?.isNotEmpty == true
                         ? Text(widget.message.description!)
                         : null,
-                    key: ValueKey('key_first${widget.message.id}'),
+                    key: ValueKey('key_first${widget.message.key}'),
                     horizontalTitleGap: 0,
                     leading: Icon(widget.message.status.icon,
                         color: widget.message.status.color),
@@ -210,7 +217,7 @@ class _FlashWidgetState extends State<_FlashWidget> {
                               : Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   key: ValueKey(
-                                      'key_second${widget.message.id}'),
+                                      'key_second${widget.message.key}'),
                                   children: [
                                     headerWidget,
                                     if (widget.message.actionLabel != null ||
