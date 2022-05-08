@@ -1,19 +1,34 @@
 library pulp_flash;
 
 import 'dart:async';
-import 'dart:math';
+import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class PulpFlash extends ChangeNotifier {
+  PulpFlash({
+    this.maxMessages = 5,
+    this.maxFlashWidth = 300,
+  });
   final List<Message> _messages = [];
+  UnmodifiableListView<Message> get displayingMessages =>
+      UnmodifiableListView<Message>(_messages);
   OverlayEntry? _overlayEntry;
 
+  /// [maxMessages] is the maximum number of messages that can be displayed at the same time.
+  final int maxMessages;
+
+  /// [maxFlashWidth] is the maximum width of the flash message.
+  final double maxFlashWidth;
+
+  /// [_insertOverlay] adds the overlay to the screen.
   void _insertOverlay(BuildContext context) {
     if (_overlayEntry != null) {
       return;
     }
+
+    /// OverlayEntry uses a Cunsumer<PulpFlash> to listen for changes and rebuild if needed.
     _overlayEntry = OverlayEntry(
         builder: (context) => Positioned(
               bottom: 32,
@@ -24,7 +39,8 @@ class PulpFlash extends ChangeNotifier {
                     children: model._messages
                         .map((m) => _FlashWidget(
                               m,
-                              key: ValueKey('Key:${m.id}'),
+                              maxFlashWidth,
+                              key: ValueKey('Key:${m.key}'),
                             ))
                         .toList()),
               ),
@@ -32,7 +48,8 @@ class PulpFlash extends ChangeNotifier {
     Overlay.of(context)?.insert(_overlayEntry!);
   }
 
-  void _removeMessage(Message m) {
+  /// [removeMessage] removes the message from [_messages] and notifyListeners.
+  void removeMessage(Message m) {
     _messages.remove(m);
     if (_messages.isEmpty) {
       _overlayEntry?.remove();
@@ -41,15 +58,24 @@ class PulpFlash extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// [showMessage] get a context and a message and show it.
+  /// note: tow message with same key not allowed.
   void showMessage(BuildContext context,
       {required Message inputMessage,
       Duration duration = const Duration(seconds: 5)}) async {
+    /// if the _overlayEntry is already displayes, do nothing.
     if (_overlayEntry == null) {
       _insertOverlay(context);
     }
 
-    if (_messages.length >= 5) {
-      _removeMessage(_messages.firstWhere((m) => !m.pinned,
+    /// Prevent to show a message with same key (for similar key error issues).
+    if (displayingMessages.where((m) => m.key == inputMessage.key).isNotEmpty) {
+      return;
+    }
+
+    /// Prevent to show more than [maxMessages] messages.
+    if (_messages.length >= maxMessages) {
+      removeMessage(_messages.firstWhere((m) => !m.pinned,
           orElse: () => _messages.first));
     }
     _messages.add(inputMessage);
@@ -57,10 +83,11 @@ class PulpFlash extends ChangeNotifier {
   }
 }
 
-enum FlashStatus { error, tips, successful, warning }
+/// [status] is just for preffred color, text, icon, etc.
+enum FlashStatus { error, tips, successful, warning, custom }
 
 extension _FlashStatusExt on FlashStatus {
-  String get text {
+  String get title {
     switch (this) {
       case FlashStatus.error:
         return "Erorr";
@@ -70,6 +97,8 @@ extension _FlashStatusExt on FlashStatus {
         return "Tips";
       case FlashStatus.warning:
         return "Warning";
+      case FlashStatus.custom:
+        return "New Message";
     }
   }
 
@@ -83,6 +112,8 @@ extension _FlashStatusExt on FlashStatus {
         return Colors.red;
       case FlashStatus.warning:
         return Colors.amber;
+      case FlashStatus.custom:
+        return Colors.grey;
     }
   }
 
@@ -96,35 +127,53 @@ extension _FlashStatusExt on FlashStatus {
         return Icons.error_rounded;
       case FlashStatus.warning:
         return Icons.warning_rounded;
+      case FlashStatus.custom:
+        return Icons.circle;
     }
   }
 }
 
 class Message {
+  /// [Message] containe all information that is needed to display a flash message.
   Message(
       {this.title,
+      this.expandable = true,
       this.description,
       required this.status,
       this.actionLabel,
       this.onActionPressed,
       this.pinned = false,
-      this.displayDuration = const Duration(seconds: 10)});
+      this.key,
+      this.color,
+      this.icon,
+      this.displayDuration = const Duration(seconds: 10)}) {
+    key ??= UniqueKey();
+  }
 
-  final String id =
-      '${10000000 + Random().nextInt(89999999)}.${Random().nextDouble()}.${10000000 + Random().nextInt(89999999)}';
+  late Key? key;
 
+  /// [status] is just for preffred color, text, icon, etc.
   final FlashStatus status;
   final String? title;
   final String? description;
+
+  final Color? color;
+  final IconData? icon;
+
+  /// [displayDuration] is the duration that the message will be displayed.
   final Duration displayDuration;
   final String? actionLabel;
   final void Function()? onActionPressed;
-  final bool pinned;
+
+  /// When [expandable] is true, flash just show the title and when you hover on it more details are shown with animation.
+  /// pinned messages are infinitely displayed.
+  final bool pinned, expandable;
 }
 
 class _FlashWidget extends StatefulWidget {
-  const _FlashWidget(this.message, {Key? key}) : super(key: key);
+  const _FlashWidget(this.message, this.maxWidth, {Key? key}) : super(key: key);
   final Message message;
+  final double maxWidth;
 
   @override
   State<_FlashWidget> createState() => _FlashWidgetState();
@@ -146,9 +195,8 @@ class _FlashWidgetState extends State<_FlashWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const double maxWidth = 300;
     return ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: maxWidth),
+        constraints: BoxConstraints(maxWidth: widget.maxWidth),
         child: TweenAnimationBuilder<double>(
           tween: fadinFadeout,
           duration: const Duration(milliseconds: 200),
@@ -157,78 +205,102 @@ class _FlashWidgetState extends State<_FlashWidget> {
           child: Card(
             clipBehavior: Clip.antiAlias,
             child: TweenAnimationBuilder<double>(
-                tween: Tween<double>(begin: maxWidth, end: 0),
+                tween: Tween<double>(begin: widget.maxWidth, end: 0),
                 duration: widget.message.displayDuration,
                 builder: (context, value, child) {
                   final Widget headerWidget = ListTile(
-                    // isThreeLine: exapnd &&
-                    //     widget.message.description?.isNotEmpty == true,
-                    subtitle:
-                        exapnd && widget.message.description?.isNotEmpty == true
-                            ? Text(widget.message.description!)
-                            : null,
-                    key: ValueKey('key_first${widget.message.id}'),
+                    subtitle: (exapnd || !widget.message.expandable) &&
+                            widget.message.description?.isNotEmpty == true
+                        ? Text(widget.message.description!)
+                        : null,
+                    key: ValueKey('key_first${widget.message.key}'),
                     horizontalTitleGap: 0,
-                    leading: Icon(widget.message.status.icon,
-                        color: widget.message.status.color),
+                    leading: Icon(
+                        widget.message.icon ?? widget.message.status.icon,
+                        color: widget.message.color ??
+                            widget.message.status.color),
                     title: Text(
-                        widget.message.title ?? widget.message.status.text),
+                        widget.message.title ?? widget.message.status.title),
                     trailing: IconButton(
                         onPressed: () => dissmiss(context),
                         icon: const Icon(Icons.close_rounded)),
                   );
                   return MouseRegion(
-                    onEnter: (_) => setState(() => exapnd = true),
-                    onExit: (_) => setState(() => exapnd = false),
+                    onEnter: !widget.message.expandable
+                        ? null
+                        : (_) => setState(() => exapnd = true),
+                    onExit: !widget.message.expandable
+                        ? null
+                        : (_) => setState(() => exapnd = false),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (!widget.message.pinned)
                           Container(
-                            color: widget.message.status.color,
+                            color: widget.message.color ??
+                                widget.message.status.color,
                             width: value,
                             height: 3,
                           ),
                         AnimatedSize(
                           duration: const Duration(milliseconds: 200),
-                          child: !exapnd
+                          child: (!exapnd && widget.message.expandable)
                               ? headerWidget
                               : Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   key: ValueKey(
-                                      'key_second${widget.message.id}'),
+                                      'key_second${widget.message.key}'),
                                   children: [
                                     headerWidget,
                                     if (widget.message.actionLabel != null ||
                                         widget.message.onActionPressed != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 52, bottom: 16),
-                                        child: InkWell(
-                                          borderRadius:
-                                              BorderRadius.circular(3),
-                                          onTap: widget.message.onActionPressed,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(2.0),
-                                            child: Text(
-                                              widget.message.actionLabel ??
-                                                  'Action',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .overline
-                                                  ?.apply(
-                                                      fontSizeDelta: 2,
-                                                      fontWeightDelta: 4,
-                                                      color: widget.message
-                                                                  .onActionPressed ==
-                                                              null
-                                                          ? Theme.of(context)
-                                                              .disabledColor
-                                                          : widget.message
-                                                              .status.color),
+                                      Row(
+                                        children: [
+                                          const SizedBox(width: 50),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 16),
+                                            child: InkWell(
+                                              borderRadius:
+                                                  BorderRadius.circular(3),
+                                              onTap: () {
+                                                if (widget.message
+                                                        .onActionPressed !=
+                                                    null) {
+                                                  widget.message
+                                                      .onActionPressed!();
+                                                }
+                                                dissmiss(context);
+                                              },
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(2.0),
+                                                child: Text(
+                                                  widget.message.actionLabel ??
+                                                      'Action',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .overline
+                                                      ?.apply(
+                                                          fontSizeDelta: 2,
+                                                          fontWeightDelta: 4,
+                                                          color: widget.message
+                                                                      .onActionPressed ==
+                                                                  null
+                                                              ? Theme.of(
+                                                                      context)
+                                                                  .disabledColor
+                                                              : widget.message
+                                                                      .color ??
+                                                                  widget
+                                                                      .message
+                                                                      .status
+                                                                      .color),
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        ],
                                       ),
                                   ],
                                 ),
@@ -246,7 +318,7 @@ class _FlashWidgetState extends State<_FlashWidget> {
     setState(() => fadinFadeout = Tween<double>(begin: 0, end: 0));
     await Future.delayed(const Duration(milliseconds: 400));
     Provider.of<PulpFlash>(context, listen: false)
-        ._removeMessage(widget.message);
+        .removeMessage(widget.message);
   }
 
   @override

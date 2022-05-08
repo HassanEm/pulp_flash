@@ -1,8 +1,7 @@
 name: pulp_flash
-description: Display multiple simple messages at a same time.
+description: Clean and beautiful flashes contained action, animation, expandable mode, etc. It's easy to use and dynamic.
 version: 0.0.1
-homepage:
-  https://github.com/HassanEm/pulp_flash
+homepage: https://github.com/HassanEm/pulp_flash
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
