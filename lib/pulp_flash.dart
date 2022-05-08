@@ -45,7 +45,7 @@ class PulpFlash extends ChangeNotifier {
     Overlay.of(context)?.insert(_overlayEntry!);
   }
 
-  void _removeMessage(Message m) {
+  void removeMessage(Message m) {
     _messages.remove(m);
     if (_messages.isEmpty) {
       _overlayEntry?.remove();
@@ -65,7 +65,7 @@ class PulpFlash extends ChangeNotifier {
     }
 
     if (_messages.length >= maxMessages) {
-      _removeMessage(_messages.firstWhere((m) => !m.pinned,
+      removeMessage(_messages.firstWhere((m) => !m.pinned,
           orElse: () => _messages.first));
     }
     _messages.add(inputMessage);
@@ -284,7 +284,7 @@ class _FlashWidgetState extends State<_FlashWidget> {
     setState(() => fadinFadeout = Tween<double>(begin: 0, end: 0));
     await Future.delayed(const Duration(milliseconds: 400));
     Provider.of<PulpFlash>(context, listen: false)
-        ._removeMessage(widget.message);
+        .removeMessage(widget.message);
   }
 
   @override
