@@ -16,16 +16,19 @@ class PulpFlash extends ChangeNotifier {
       UnmodifiableListView<Message>(_messages);
   OverlayEntry? _overlayEntry;
 
-  /// maxMessages is the maximum number of messages that can be displayed at the same time.
+  /// [maxMessages] is the maximum number of messages that can be displayed at the same time.
   final int maxMessages;
 
-  /// maxFlashWidth is the maximum width of the flash message.
+  /// [maxFlashWidth] is the maximum width of the flash message.
   final double maxFlashWidth;
 
+  /// [_insertOverlay] adds the overlay to the screen.
   void _insertOverlay(BuildContext context) {
     if (_overlayEntry != null) {
       return;
     }
+
+    /// OverlayEntry uses a Cunsumer<PulpFlash> to listen for changes and rebuild if needed.
     _overlayEntry = OverlayEntry(
         builder: (context) => Positioned(
               bottom: 32,
@@ -45,6 +48,7 @@ class PulpFlash extends ChangeNotifier {
     Overlay.of(context)?.insert(_overlayEntry!);
   }
 
+  /// [removeMessage] removes the message from [_messages] and notifyListeners.
   void removeMessage(Message m) {
     _messages.remove(m);
     if (_messages.isEmpty) {
@@ -54,16 +58,21 @@ class PulpFlash extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// [showMessage] get a context and a message and show it.
   void showMessage(BuildContext context,
       {required Message inputMessage,
       Duration duration = const Duration(seconds: 5)}) async {
+    /// if the _overlayEntry is already displayes, do nothing.
     if (_overlayEntry == null) {
       _insertOverlay(context);
     }
+
+    /// Prevent to show a message with same key (for similar key error issues).
     if (displayingMessages.where((m) => m.key == inputMessage.key).isNotEmpty) {
       return;
     }
 
+    /// Prevent to show more than [maxMessages] messages.
     if (_messages.length >= maxMessages) {
       removeMessage(_messages.firstWhere((m) => !m.pinned,
           orElse: () => _messages.first));
@@ -73,10 +82,10 @@ class PulpFlash extends ChangeNotifier {
   }
 }
 
-enum FlashStatus { error, tips, successful, warning }
+enum FlashStatus { error, tips, successful, warning, custom }
 
 extension _FlashStatusExt on FlashStatus {
-  String get text {
+  String get title {
     switch (this) {
       case FlashStatus.error:
         return "Erorr";
@@ -86,6 +95,8 @@ extension _FlashStatusExt on FlashStatus {
         return "Tips";
       case FlashStatus.warning:
         return "Warning";
+      case FlashStatus.custom:
+        return "New Message";
     }
   }
 
@@ -99,6 +110,8 @@ extension _FlashStatusExt on FlashStatus {
         return Colors.red;
       case FlashStatus.warning:
         return Colors.amber;
+      case FlashStatus.custom:
+        return Colors.grey;
     }
   }
 
@@ -112,10 +125,13 @@ extension _FlashStatusExt on FlashStatus {
         return Icons.error_rounded;
       case FlashStatus.warning:
         return Icons.warning_rounded;
+      case FlashStatus.custom:
+        return Icons.circle;
     }
   }
 }
 
+/// [Message] containe all information that is needed to display a flash message.
 class Message {
   Message(
       {this.title,
@@ -126,18 +142,29 @@ class Message {
       this.onActionPressed,
       this.pinned = false,
       this.key,
+      this.color,
+      this.icon,
       this.displayDuration = const Duration(seconds: 10)}) {
     key ??= UniqueKey();
   }
 
   late Key? key;
 
+  /// [status] is just for preffred color, text, icon, etc.
   final FlashStatus status;
   final String? title;
   final String? description;
+
+  final Color? color;
+  final IconData? icon;
+
+  /// [displayDuration] is the duration that the message will be displayed.
   final Duration displayDuration;
   final String? actionLabel;
   final void Function()? onActionPressed;
+
+  /// When [expandable] is true, flash just show the title and when you hover on it more details are shown with animation.
+  /// pinned messages are infinitely displayed.
   final bool pinned, expandable;
 }
 
@@ -186,10 +213,12 @@ class _FlashWidgetState extends State<_FlashWidget> {
                         : null,
                     key: ValueKey('key_first${widget.message.key}'),
                     horizontalTitleGap: 0,
-                    leading: Icon(widget.message.status.icon,
-                        color: widget.message.status.color),
+                    leading: Icon(
+                        widget.message.icon ?? widget.message.status.icon,
+                        color: widget.message.color ??
+                            widget.message.status.color),
                     title: Text(
-                        widget.message.title ?? widget.message.status.text),
+                        widget.message.title ?? widget.message.status.title),
                     trailing: IconButton(
                         onPressed: () => dissmiss(context),
                         icon: const Icon(Icons.close_rounded)),
@@ -206,7 +235,8 @@ class _FlashWidgetState extends State<_FlashWidget> {
                       children: [
                         if (!widget.message.pinned)
                           Container(
-                            color: widget.message.status.color,
+                            color: widget.message.color ??
+                                widget.message.status.color,
                             width: value,
                             height: 3,
                           ),
@@ -258,10 +288,12 @@ class _FlashWidgetState extends State<_FlashWidget> {
                                                               ? Theme.of(
                                                                       context)
                                                                   .disabledColor
-                                                              : widget
-                                                                  .message
-                                                                  .status
-                                                                  .color),
+                                                              : widget.message
+                                                                      .color ??
+                                                                  widget
+                                                                      .message
+                                                                      .status
+                                                                      .color),
                                                 ),
                                               ),
                                             ),
