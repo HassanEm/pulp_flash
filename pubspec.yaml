@@ -1,6 +1,6 @@
 name: pulp_flash
 description: Clean and beautiful flashes contained action, animation, expandable mode, etc. It's easy to use and dynamic.
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/HassanEm/pulp_flash
 
 environment:
