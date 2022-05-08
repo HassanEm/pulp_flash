@@ -59,6 +59,7 @@ class PulpFlash extends ChangeNotifier {
   }
 
   /// [showMessage] get a context and a message and show it.
+  /// note: tow message with same key not allowed.
   void showMessage(BuildContext context,
       {required Message inputMessage,
       Duration duration = const Duration(seconds: 5)}) async {
@@ -82,6 +83,7 @@ class PulpFlash extends ChangeNotifier {
   }
 }
 
+/// [status] is just for preffred color, text, icon, etc.
 enum FlashStatus { error, tips, successful, warning, custom }
 
 extension _FlashStatusExt on FlashStatus {
@@ -131,8 +133,8 @@ extension _FlashStatusExt on FlashStatus {
   }
 }
 
-/// [Message] containe all information that is needed to display a flash message.
 class Message {
+  /// [Message] containe all information that is needed to display a flash message.
   Message(
       {this.title,
       this.expandable = true,
