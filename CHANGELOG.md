@@ -22,3 +22,6 @@ Define an action for your message if needed
 ## 0.0.3
 
 - Debuging
+## 0.0.4
+
+- environment & dependencies updated
