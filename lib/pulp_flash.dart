@@ -6,6 +6,26 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+class PulpFlashProvider extends StatelessWidget {
+  const PulpFlashProvider(
+      {required this.child,
+      this.maxFlashWidth = 300,
+      this.maxMessages = 5,
+      super.key});
+  final Widget child;
+  final int maxMessages;
+  final double maxFlashWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<PulpFlash>(
+      create: (_) =>
+          PulpFlash(maxFlashWidth: maxFlashWidth, maxMessages: maxMessages),
+      child: child,
+    );
+  }
+}
+
 class PulpFlash extends ChangeNotifier {
   PulpFlash({
     this.maxMessages = 5,

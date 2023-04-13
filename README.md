@@ -22,7 +22,7 @@ To use `pulp_flash` in your Flutter application, follow these steps:
 
 ## Usage
 
-You just need to set up a `ChangeNotifierProvider<PulpFlash>` (I recommend placing it above the `MaterialApp` widget so that you don't have to worry about contexts and can easily use it wherever you need) and call it like this:
+You just need to set up a `PulpFlashProvider` (I recommend placing it above the `MaterialApp` widget so that you don't have to worry about contexts and can easily use it wherever you need) and call it like this:
 ```dart
 PulpFlash.of(context)
                 .showMessage(context,messageThatYouWantToShow);
@@ -44,12 +44,9 @@ Message({
 ## Example
 
 ```dart
-void main() => runApp(ChangeNotifierProvider<PulpFlash>(
-    create: (context) => PulpFlash(),
-    child: const MaterialApp(
-      home: MyApp(),
-    ),
-    builder: (context, child) => child!));
+void main() => runApp(const PulpFlashProvider(
+    child: MaterialApp(
+      home: MyApp()));
 
     class MyApp extends StatelessWidget {
   const MyApp({ Key? key }) : super(key: key);

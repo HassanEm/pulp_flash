@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:pulp_flash/pulp_flash.dart';
 
-void main() => runApp(ChangeNotifierProvider<PulpFlash>(
-    builder: (context, child) => child!,
-    create: (context) => PulpFlash(),
-    child: const MaterialApp(home: ExampleScreen())));
+void main() =>
+    runApp(const PulpFlashProvider(child: MaterialApp(home: ExampleScreen())));
 
 class ExampleScreen extends StatelessWidget {
   const ExampleScreen({Key? key}) : super(key: key);

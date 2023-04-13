@@ -31,3 +31,8 @@ Define an action for your message if needed
 - New static func
 - Documentation updated
 - Dependencies updated
+## 0.0.6
+
+- Internal Provider Bridge
+- Documentation updated
+- environment updated
