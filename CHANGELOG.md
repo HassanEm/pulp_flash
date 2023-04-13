@@ -25,3 +25,9 @@ Define an action for your message if needed
 ## 0.0.4
 
 - environment & dependencies updated
+## 0.0.5
+
+- Campabilty with Flutter 3.7.11
+- New static func
+- Documentation updated
+- Dependencies updated

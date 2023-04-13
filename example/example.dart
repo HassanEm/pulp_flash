@@ -16,7 +16,7 @@ class ExampleScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.tips_and_updates_rounded),
         onPressed: () {
-          Provider.of<PulpFlash>(context, listen: false).showMessage(context,
+          PulpFlash.of(context).showMessage(context,
               inputMessage: Message(
                   status: FlashStatus.tips, title: 'This is a tip message'));
         },

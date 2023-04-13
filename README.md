@@ -1,24 +1,30 @@
-Simple multipurpse flashes to announce different messages to the user and interact with them.
-Display multiple flashes at the same time and avoid writing thousands of extra lines to handle different situations of your application.
+# pulp_flash
+
+`pulp_flash` is a Flutter package for displaying flash messages in your application. Flash messages are temporary messages that are typically used to provide feedback or notifications to users after an action has been performed. This package provides a simple and customizable way to show flash messages in your Flutter app.
 
 ## Features
 
-- Display multiple messages
-- Pinned Message
-- Customizable statuses
-- Customizable display duration for each message
-
+- Display flash messages with customizable title, description, color, icon, and duration.
+- Supports multiple flash messages at the same time.
+- Allows pinning messages to display them indefinitely.
+- Automatically handles overflow by removing older messages when the maximum number of messages is reached.
+- Can be easily used in combination with the Flutter `Provider` package for state management.
 
 ![screenshot](assets/screenshot.png)
 
-> More features coming. it's will be a pleasure to report any bug or features that you think help the package💖. [Repository (GitHub)](https://github.com/HassanEm/pulp_flash)
+> More features are coming. It will be a pleasure to receive reports about any bugs or features that you think will help improve the package 💖. [Repository (GitHub)](https://github.com/HassanEm/pulp_flash)
+## Usage
+
+To use `pulp_flash` in your Flutter application, follow these steps:
+
+
 
 
 ## Usage
 
-You just need to set a `ChangeNotifierProvider<PulpFlash>` (I recommend putting it above of `MaterialApp`, its helps you not worried about contexts and use it where ever you want easily.) and call it like this:
+You just need to set up a `ChangeNotifierProvider<PulpFlash>` (I recommend placing it above the `MaterialApp` widget so that you don't have to worry about contexts and can easily use it wherever you need) and call it like this:
 ```dart
-Provider.of<PulpFlash>(context, listen: false)
+PulpFlash.of(context)
                 .showMessage(context,messageThatYouWantToShow);
 ```
 Message:
@@ -52,7 +58,7 @@ void main() => runApp(ChangeNotifierProvider<PulpFlash>(
   Widget build(BuildContext context) {
     return Scaffold(floatingActionButton: FloatingActionButton(
       onPressed: (){
-          Provider.of<PulpFlash>(context, listen: false)
+          PulpFlash.of(context)
                 .showMessage(context,
                     inputMessage:Message(
                         status: MessageStatus.successful,

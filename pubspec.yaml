@@ -1,6 +1,6 @@
 name: pulp_flash
 description: Clean and beautiful flashes contained action, animation, expandable mode, etc. It's easy to use and dynamic.
-version: 0.0.4
+version: 0.0.5
 homepage: https://github.com/HassanEm/pulp_flash
 
 environment:
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.0.3
+  provider: ^6.0.5
 
 dev_dependencies:
   flutter_test:
