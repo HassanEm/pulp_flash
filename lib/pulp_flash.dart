@@ -45,7 +45,7 @@ class PulpFlash extends ChangeNotifier {
                         .toList()),
               ),
             ));
-    Overlay.of(context)?.insert(_overlayEntry!);
+    Overlay.of(context).insert(_overlayEntry!);
   }
 
   /// [removeMessage] removes the message from [_messages] and notifyListeners.
@@ -80,6 +80,10 @@ class PulpFlash extends ChangeNotifier {
     }
     _messages.add(inputMessage);
     notifyListeners();
+  }
+
+  static PulpFlash of(BuildContext context) {
+    return Provider.of<PulpFlash>(context, listen: false);
   }
 }
 
@@ -196,122 +200,123 @@ class _FlashWidgetState extends State<_FlashWidget> {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: widget.maxWidth),
-        child: TweenAnimationBuilder<double>(
-          tween: fadinFadeout,
-          duration: const Duration(milliseconds: 200),
-          builder: (context, value, child) =>
-              Opacity(opacity: value, child: child!),
-          child: Card(
-            clipBehavior: Clip.antiAlias,
-            child: TweenAnimationBuilder<double>(
-                tween: Tween<double>(begin: widget.maxWidth, end: 0),
-                duration: widget.message.displayDuration,
-                builder: (context, value, child) {
-                  final Widget headerWidget = ListTile(
-                    subtitle: (exapnd || !widget.message.expandable) &&
-                            widget.message.description?.isNotEmpty == true
-                        ? Text(widget.message.description!)
-                        : null,
-                    key: ValueKey('key_first${widget.message.key}'),
-                    horizontalTitleGap: 0,
-                    leading: Icon(
-                        widget.message.icon ?? widget.message.status.icon,
-                        color: widget.message.color ??
-                            widget.message.status.color),
-                    title: Text(
-                        widget.message.title ?? widget.message.status.title),
-                    trailing: IconButton(
-                        onPressed: () => dissmiss(context),
-                        icon: const Icon(Icons.close_rounded)),
-                  );
-                  return MouseRegion(
-                    onEnter: !widget.message.expandable
-                        ? null
-                        : (_) => setState(() => exapnd = true),
-                    onExit: !widget.message.expandable
-                        ? null
-                        : (_) => setState(() => exapnd = false),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (!widget.message.pinned)
-                          Container(
-                            color: widget.message.color ??
-                                widget.message.status.color,
-                            width: value,
-                            height: 3,
-                          ),
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 200),
-                          child: (!exapnd && widget.message.expandable)
-                              ? headerWidget
-                              : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  key: ValueKey(
-                                      'key_second${widget.message.key}'),
-                                  children: [
-                                    headerWidget,
-                                    if (widget.message.actionLabel != null ||
-                                        widget.message.onActionPressed != null)
-                                      Row(
-                                        children: [
-                                          const SizedBox(width: 50),
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 16),
-                                            child: InkWell(
-                                              borderRadius:
-                                                  BorderRadius.circular(3),
-                                              onTap: () {
-                                                if (widget.message
-                                                        .onActionPressed !=
-                                                    null) {
-                                                  widget.message
-                                                      .onActionPressed!();
-                                                }
-                                                dissmiss(context);
-                                              },
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(2.0),
-                                                child: Text(
-                                                  widget.message.actionLabel ??
-                                                      'Action',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .overline
-                                                      ?.apply(
-                                                          fontSizeDelta: 2,
-                                                          fontWeightDelta: 4,
-                                                          color: widget.message
-                                                                      .onActionPressed ==
-                                                                  null
-                                                              ? Theme.of(
-                                                                      context)
-                                                                  .disabledColor
-                                                              : widget.message
-                                                                      .color ??
-                                                                  widget
-                                                                      .message
-                                                                      .status
-                                                                      .color),
-                                                ),
+      constraints: BoxConstraints(maxWidth: widget.maxWidth),
+      child: TweenAnimationBuilder<double>(
+        tween: fadinFadeout,
+        duration: const Duration(milliseconds: 200),
+        builder: (context, value, child) =>
+            Opacity(opacity: value, child: child!),
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: widget.maxWidth, end: 0),
+              duration: widget.message.displayDuration,
+              builder: (context, value, child) {
+                final Widget headerWidget = ListTile(
+                  subtitle: (exapnd || !widget.message.expandable) &&
+                          widget.message.description?.isNotEmpty == true
+                      ? Text(widget.message.description!)
+                      : null,
+                  key: ValueKey('key_first${widget.message.key}'),
+                  horizontalTitleGap: 0,
+                  leading: Icon(
+                      widget.message.icon ?? widget.message.status.icon,
+                      color:
+                          widget.message.color ?? widget.message.status.color),
+                  title:
+                      Text(widget.message.title ?? widget.message.status.title),
+                  trailing: IconButton(
+                      onPressed: () => dissmiss(context),
+                      icon: const Icon(Icons.close_rounded)),
+                );
+                return MouseRegion(
+                  onEnter: !widget.message.expandable
+                      ? null
+                      : (_) => setState(() => exapnd = true),
+                  onExit: !widget.message.expandable
+                      ? null
+                      : (_) => setState(() => exapnd = false),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!widget.message.pinned)
+                        Container(
+                          color: widget.message.color ??
+                              widget.message.status.color,
+                          width: value,
+                          height: 3,
+                        ),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 200),
+                        child: (!exapnd && widget.message.expandable)
+                            ? headerWidget
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                key:
+                                    ValueKey('key_second${widget.message.key}'),
+                                children: [
+                                  headerWidget,
+                                  if (widget.message.actionLabel != null ||
+                                      widget.message.onActionPressed != null)
+                                    Row(
+                                      children: [
+                                        const SizedBox(width: 50),
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 16),
+                                          child: InkWell(
+                                            borderRadius:
+                                                BorderRadius.circular(3),
+                                            onTap: () {
+                                              if (widget.message
+                                                      .onActionPressed !=
+                                                  null) {
+                                                widget
+                                                    .message.onActionPressed!();
+                                              }
+                                              dissmiss(context);
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(2.0),
+                                              child: Text(
+                                                widget.message.actionLabel ??
+                                                    'Action',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelSmall
+                                                    ?.apply(
+                                                        fontSizeDelta: 2,
+                                                        fontWeightDelta: 4,
+                                                        color: widget.message
+                                                                    .onActionPressed ==
+                                                                null
+                                                            ? Theme.of(context)
+                                                                .disabledColor
+                                                            : widget.message
+                                                                    .color ??
+                                                                widget
+                                                                    .message
+                                                                    .status
+                                                                    .color),
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                  ],
-                                ),
-                        )
-                      ],
-                    ),
-                  );
-                }),
-            margin: const EdgeInsets.symmetric(vertical: 8),
-          ),
-        ));
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                      )
+                    ],
+                  ),
+                );
+              }),
+          margin: const EdgeInsets.symmetric(vertical: 8),
+        ),
+      ),
+    );
+    // );
   }
 
   Future<void> dissmiss(BuildContext context) async {
